@@ -431,13 +431,14 @@ static inline void render_stereoscope(const std::vector<Sphere> &spheres,
                  (width - delta) * 2, height, 3, pixmap.data(), 100);
 }
 
-#define NB_IMAGES 360
+#define NB_IMAGES 40
 
 static inline void render_video(
     void (*renderer)(const std::vector<Sphere> &, const std::vector<Light> &,
                      const Vec3f &, const Vec3f &, const int),
     const std::vector<Sphere> &spheres, const std::vector<Light> &lights) {
-  Vec3f camera{0, 0, -14};
+  Vec3f camera{0, 0, 0};
+
 
   for (int angle = 0; angle <= NB_IMAGES; ++angle) {
     // TODO: correctly rotate the camera around the center of the image
@@ -447,17 +448,44 @@ static inline void render_video(
 
     renderer(spheres, lights, camera, Vec3f{0, 0, 0}, angle);
 
-    // // On essaie de tourner autour du point {0, 0, -14}
-    // const Vec3f center{0, 0, -14};
+    // On essaie de tourner autour du point {0, 0, -14}
+    const Vec3f center{0, 0, -14};
 
-    // float theta = 1.f * M_PI / 180.f;
-    // float x_rot = camera.x * cos(theta) + (camera.z + center.z) * sin(theta);
-    // float z_rot = -camera.x * sin(theta) + (camera.z + center.z) * cos(theta)
-    // - center.z;
+    float theta = 1.f * M_PI / 180.f;
+    float x_rot = camera.x * cos(theta) + (camera.z + center.z) * sin(theta);
+    float z_rot = -camera.x * sin(theta) + (camera.z + center.z) * cos(theta)
+    - center.z;
 
-    // camera.x += x_rot;
-    // camera.z += z_rot;
+    /*camera.x -= sin(1./4.);
+    camera.y += 0.;
+    camera.z += cos(1./4.);*/
+    //camera.z += z_rot;
   }
+}
+
+static inline void render_video_rebond(
+        void (*renderer)(const std::vector<Sphere> &, const std::vector<Light> &,
+                         const Vec3f &, const Vec3f &, const int),
+        std::vector<Sphere> &spheres, const std::vector<Light> &lights){
+    int first = 1;
+    for (int angle = 0; angle <= NB_IMAGES; ++angle) {
+
+        std::clog << "\033[0G\033[2K[" << angle << "/" << NB_IMAGES
+                  << "] Generating video...";
+
+        renderer(spheres, lights, Vec3f {0, 0, 0}, Vec3f{0, 0, 0}, angle);
+
+        if(angle % 5 == 0) {
+            first = 1 - first;
+        }
+
+        if(first == 1) {
+            spheres[2].center.y -= 1;
+        }
+        else {
+            spheres[2].center.y += 1;
+        }
+    }
 }
 
 int main() {
@@ -500,7 +528,8 @@ int main() {
   std::clog << "Rendering stereoscope image..." << std::endl;
   render_stereoscope(spheres, lights, 0);
 #endif
-  render_video(&render_normal, spheres, lights);
+  //render_video(&render_normal, spheres, lights);
+  render_video_rebond(&render_normal, spheres, lights);
 
   return 0;
 }
