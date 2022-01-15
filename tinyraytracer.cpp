@@ -14,7 +14,7 @@
 #include "geometry.h"
 #include "model.h"
 
-#define WITH_DUCK 0
+#define WITH_DUCK 1
 
 int envmap_width, envmap_height;
 std::vector<Vec3f> envmap;
@@ -263,7 +263,7 @@ Vec3f cast_ray(const Vec3f &orig, const Vec3f &dir,
 
 static inline void render_normal(const std::vector<Sphere> &spheres,
                                  const std::vector<Light> &lights,
-                                 const Vec3f &camera, const Vec3f &dir,
+                                 const Vec3f &camera,
                                  const int i) {
   const int width = 1024;
   const int height = 768;
@@ -435,7 +435,7 @@ static inline void render_stereoscope(const std::vector<Sphere> &spheres,
 
 static inline void render_video(
     void (*renderer)(const std::vector<Sphere> &, const std::vector<Light> &,
-                     const Vec3f &, const Vec3f &, const int),
+                     const Vec3f &, const int),
     const std::vector<Sphere> &spheres, const std::vector<Light> &lights) {
   Vec3f camera{0, 0, 0};
 
@@ -446,7 +446,7 @@ static inline void render_video(
     std::clog << "\033[0G\033[2K[" << angle << "/" << NB_IMAGES
               << "] Generating video...";
 
-    renderer(spheres, lights, camera, Vec3f{0, 0, 0}, angle);
+    renderer(spheres, lights, camera, angle);
 
     // On essaie de tourner autour du point {0, 0, -14}
     const Vec3f center{0, 0, -14};
@@ -465,7 +465,7 @@ static inline void render_video(
 
 static inline void render_video_rebond(
         void (*renderer)(const std::vector<Sphere> &, const std::vector<Light> &,
-                         const Vec3f &, const Vec3f &, const int),
+                         const Vec3f &, const int),
         std::vector<Sphere> &spheres, const std::vector<Light> &lights){
     int first = 0;
     for (int angle = 1; angle <= NB_IMAGES+1; ++angle) {
@@ -473,7 +473,7 @@ static inline void render_video_rebond(
         std::clog << "\033[0G\033[2K[" << angle << "/" << NB_IMAGES
                   << "] Generating video...";
 
-        renderer(spheres, lights, Vec3f {0, 0, 0}, Vec3f{0, 0, 0}, angle);
+        renderer(spheres, lights, Vec3f {0, 0, 0}, angle);
 
 
         switch (first) {
@@ -560,7 +560,7 @@ int main() {
   render_stereoscope(spheres, lights, 0);
 #endif
   //render_video(&render_normal, spheres, lights);
-  render_video_rebond(&render_normal, spheres, lights);
+  render_video_rebond(&render_parallax, spheres, lights);
 
   return 0;
 }
