@@ -467,24 +467,55 @@ static inline void render_video_rebond(
         void (*renderer)(const std::vector<Sphere> &, const std::vector<Light> &,
                          const Vec3f &, const Vec3f &, const int),
         std::vector<Sphere> &spheres, const std::vector<Light> &lights){
-    int first = 1;
-    for (int angle = 0; angle <= NB_IMAGES; ++angle) {
+    int first = 0;
+    for (int angle = 1; angle <= NB_IMAGES+1; ++angle) {
 
         std::clog << "\033[0G\033[2K[" << angle << "/" << NB_IMAGES
                   << "] Generating video...";
 
         renderer(spheres, lights, Vec3f {0, 0, 0}, Vec3f{0, 0, 0}, angle);
 
-        if(angle % 5 == 0) {
-            first = 1 - first;
+
+        switch (first) {
+            case 0 :
+                spheres[2].center.x -= 1;
+                spheres[2].center.y += 1;
+                break;
+            case 1:
+                spheres[2].center.x -= 1;
+                spheres[2].center.y -= 1;
+                break;
+            case 2:
+                spheres[2].center.z += 1;
+                spheres[2].center.y += 1;
+                break;
+            case 3:
+                spheres[2].center.z += 1;
+                spheres[2].center.y -= 1;
+                break;
+            case 4:
+                spheres[2].center.x += 1;
+                spheres[2].center.y += 1;
+                break;
+            case 5:
+                spheres[2].center.x += 1;
+                spheres[2].center.y -= 1;
+                break;
+            case 6:
+                spheres[2].center.z -= 1;
+                spheres[2].center.y += 1;
+                break;
+            case 7:
+                spheres[2].center.z -= 1;
+                spheres[2].center.y -= 1;
+                break;
         }
 
-        if(first == 1) {
-            spheres[2].center.y -= 1;
+        //changement tous les 5 images
+        if(angle % 5 == 0) {
+            first = (first + 1) % 8;
         }
-        else {
-            spheres[2].center.y += 1;
-        }
+
     }
 }
 
