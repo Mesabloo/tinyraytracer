@@ -74,6 +74,7 @@ struct Sphere {
   }
 };
 
+
 static inline Vec3f rotate_camera(const Vec3f &orig, const Vec3f &dir, const Vec3f &target) {
     const Vec3f zAxis = (orig - target).normalize();
     const Vec3f xAxis = cross(Vec3f(0., 1., 0.), zAxis).normalize();
@@ -299,8 +300,7 @@ static inline void render_normal(const std::vector<Sphere> &spheres,
     if (max > 1)
       c = c * (1. / max);
     for (size_t j = 0; j < 3; j++) {
-      pixmap[i * 3 + j] =
-          (unsigned char)(255 * std::clamp(framebuffer[i][j], 0.f, 1.f));
+      pixmap[i * 3 + j] = (unsigned char)(255 * std::clamp(framebuffer[i][j], 0.f, 1.f));
       // std::max(0.f, std::min(1.f, framebuffer[i][j])));
     }
   }
@@ -431,7 +431,7 @@ static inline void render_stereoscope(const std::vector<Sphere> &spheres,
                  (width - delta) * 2, height, 3, pixmap.data(), 100);
 }
 
-#define NB_IMAGES 40
+#define NB_IMAGES 1
 
 static inline void render_video(
     void (*renderer)(const std::vector<Sphere> &, const std::vector<Light> &,
@@ -519,6 +519,13 @@ static inline void render_video_rebond(
     }
 }
 
+std::vector<Sphere> deathStar(std::vector<Sphere> spheres) {
+    spheres.push_back(Sphere(Vec3f(-10, 7, -22), 3, ivory)); //premier cercle
+    spheres.push_back(Sphere(Vec3f(-8, 8, -20), 1, red_rubber)); //deuxieme cercle
+    return spheres;
+}
+
+
 int main() {
   int n = -1;
   unsigned char *pixmap =
@@ -545,6 +552,8 @@ int main() {
   spheres.push_back(Sphere(Vec3f(-1.0, -1.5, -12), 2, glass));
   spheres.push_back(Sphere(Vec3f(1.5, -0.5, -18), 3, red_rubber));
   spheres.push_back(Sphere(Vec3f(7, 5, -18), 4, mirror));
+
+  spheres = deathStar(spheres);
 
   std::vector<Light> lights;
   lights.push_back(Light(Vec3f(-20, 20, 20), 1.5));
