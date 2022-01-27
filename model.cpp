@@ -40,7 +40,7 @@ Model::Model(const char *filename) : verts(), faces() {
 }
 
 // Moller and Trumbore
-bool Model::ray_triangle_intersect(const int &fi, const Vec3f &orig, const Vec3f &dir, float &tnear) {
+bool Model::ray_triangle_intersect(const int &fi, const Vec3f &orig, const Vec3f &dir, float &tnear) const {
     Vec3f edge1 = point(vert(fi,1)) - point(vert(fi,0));
     Vec3f edge2 = point(vert(fi,2)) - point(vert(fi,0));
     Vec3f pvec = cross(dir, edge2);
