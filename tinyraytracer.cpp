@@ -382,7 +382,7 @@ int main() {
     std::clog << "Rendering stereoscope image..." << std::endl;
     render_stereoscope(csg_tree, lights, 0);
 #endif
-    render_video_rebond(&render_normal, spheres, csg_tree, lights);
+    render_video_rebond(&render_parallax, spheres, csg_tree, lights);
 
     return 0;
 }

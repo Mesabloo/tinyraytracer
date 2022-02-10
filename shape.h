@@ -79,7 +79,7 @@ struct Checkerboard : public Shape {
                 material.diffuse_color =
                     (int(.5 * pt.x + 1000) + int(.5 * pt.z)) & 1 ? Vec3f(.3, .3, .3) : Vec3f(.3, .2, .1);
 
-                return {Interval{pt, pt, [](const Vec3f &) { return Vec3f(0, 1, 0); }, material, orig}};
+                return {Interval{pt, pt + 1e-3f, [](const Vec3f &) { return Vec3f(0, 1, 0); }, material, orig}};
             }
         }
 
@@ -110,11 +110,11 @@ struct DuckObject : public Shape {
             if (duck.ray_triangle_intersect(i, orig, dir, dist)) {
                 const Vec3f hit = orig + dir * dist;
 
-                inter.insert(Interval{hit, hit,
+                inter.insert(Interval{hit, hit + 1e-3f,
                                       [i, this](const Vec3f &) {
-                                          const Vec3f &a = duck.point(duck.vert(i, 0));
-                                          const Vec3f &b = duck.point(duck.vert(i, 1));
-                                          const Vec3f &c = duck.point(duck.vert(i, 2));
+                                          const Vec3f a = duck.point(duck.vert(i, 0));
+                                          const Vec3f b = duck.point(duck.vert(i, 1));
+                                          const Vec3f c = duck.point(duck.vert(i, 2));
 
                                           // Le vecteur normal à un triangle est un vecteur orthogonal à 2 de ses
                                           // côtés
