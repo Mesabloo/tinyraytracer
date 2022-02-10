@@ -18,17 +18,18 @@ static inline constexpr bool is_point_between(const Vec3f &p1, const Vec3f &p2, 
     const float ty = (p3.y - p1.y) / (p2.y - p1.y);
     const float tz = (p3.z - p1.z) / (p2.z - p1.z);
 
-    return tx - ty < FLT_EPSILON && tx - tz < FLT_EPSILON && tx >= 0 && tx <= 1;
+    return tx - ty < FLT_EPSILON && tx - tz < FLT_EPSILON && ty - tz < FLT_EPSILON && tx >= 0 && tx <= 1;
 }
 
 struct Interval {
     Vec3f from, to;
     std::function<Vec3f(const Vec3f &)> compute_normal;
     Material material;
+    const Vec3f &orig;
 
     Interval(const Vec3f &from, const Vec3f &to, const std::function<Vec3f(const Vec3f &)> &normal,
-             const Material &material)
-        : from(from), to(to), compute_normal(normal), material(material) {}
+             const Material &material, const Vec3f &orig)
+        : from(from), to(to), compute_normal(normal), material(material), orig(orig) {}
 
     //! Est-ce que les deux intervalles se chevauchent ? (en supposant que les deux sont sur le même segment)
     bool overlaps(const Interval &i) const {
@@ -49,5 +50,16 @@ struct Interval {
 
 //! Vérifie si les deux intervalles commencent et finissent aux mêmes points
 inline bool operator==(const Interval &i1, const Interval &i2) { return i1.from == i2.from && i1.to == i2.to; }
+
+inline bool operator<(const Interval &i1, const Interval &i2) {
+  const float dist1 = (i1.orig - i1.from).norm();
+  const float dist2 = (i2.orig - i2.from).norm();
+
+  return dist1 < dist2;
+}
+
+inline std::ostream &operator<<(std::ostream &os, const Interval &i) {
+    return os << "[" << i.from << ", " << i.to << "]";
+}
 
 #endif

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <set>
 #include <vector>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -16,7 +17,7 @@
 #include "material.h"
 #include "model.h"
 
-#define WITH_DUCK 1
+#define WITH_DUCK 0
 
 int envmap_width, envmap_height;
 std::vector<Vec3f> envmap;
@@ -44,21 +45,23 @@ static inline Vec3f refract(const Vec3f &I, const Vec3f &N, const float eta_t,
 
 bool scene_intersect(const Vec3f &orig, const Vec3f &dir, const std::shared_ptr<CSGTree<Shape>> &csg_tree, Vec3f &hit,
                      Vec3f &N, Material &material) {
-    const std::vector<Interval> intersections = csg_tree->ray_intersect(orig, dir);
+    const std::set<Interval> intersections = csg_tree->ray_intersect(orig, dir);
 
     if (intersections.empty())
         return false;
 
-    const Interval &i = intersections[0];
+    const Interval &i = *std::cbegin(intersections);
+
+    std::clog << i << std::endl;
 
     hit = i.from;
     N = i.compute_normal(hit);
     material = i.material;
 
-    return true;
+    return (orig - hit).norm() < 1000;
 }
 
-#define MAX_DEPTH 8
+#define MAX_DEPTH 4
 
 Vec3f cast_ray(const Vec3f &orig, const Vec3f &dir, const std::shared_ptr<CSGTree<Shape>> &csg_tree,
                const std::vector<Light> &lights, size_t depth = 0) {
@@ -82,7 +85,7 @@ Vec3f cast_ray(const Vec3f &orig, const Vec3f &dir, const std::shared_ptr<CSGTre
     const Vec3f refract_color = cast_ray(refract_orig, refract_dir, csg_tree, lights, depth + 1);
 
     float diffuse_light_intensity = 0, specular_light_intensity = 0;
-#pragma omp parallel for
+//#pragma omp parallel for
     for (const Light &light : lights) {
         Vec3f vec = light.position - point;
         const Vec3f light_dir = vec.normalize();
@@ -352,11 +355,19 @@ int main() {
             std::make_shared<CSGTreeNode<Shape>>(std::make_shared<CSGTreeLeaf<Shape>>(spheres[2]),
                                                  std::make_shared<CSGTreeLeaf<Shape>>(spheres[3]),
                                                  CSGTreeNodeType::UNION),
+#if WITH_DUCK
             std::make_shared<CSGTreeNode<Shape>>(std::make_shared<CSGTreeLeaf<Shape>>(duck),
                                                  std::make_shared<CSGTreeLeaf<Shape>>(checkerboard),
                                                  CSGTreeNodeType::UNION),
+#else
+            std::make_shared<CSGTreeLeaf<Shape>>(checkerboard),
+#endif
             CSGTreeNodeType::UNION),
 
+        CSGTreeNodeType::UNION);
+
+    const std::shared_ptr<CSGTree<Shape>> csg_tree2 = std::make_shared<CSGTreeNode<Shape>>(
+        std::make_shared<CSGTreeLeaf<Shape>>(duck), std::make_shared<CSGTreeLeaf<Shape>>(checkerboard),
         CSGTreeNodeType::UNION);
 
     std::vector<Light> lights;
@@ -372,7 +383,7 @@ int main() {
     std::clog << "Rendering stereoscope image..." << std::endl;
     render_stereoscope(csg_tree, lights, 0);
 #endif
-    render_video_rebond(&render_normal, spheres, csg_tree, lights);
+    render_video_rebond(&render_normal, spheres, csg_tree2, lights);
 
     return 0;
 }

@@ -6,10 +6,11 @@
 #include "model.h"
 #include <cfloat>
 #include <optional>
+#include <set>
 
 struct Shape {
     virtual ~Shape() = default;
-    virtual std::vector<Interval> ray_intersect(const Vec3f &orig, const Vec3f &dir) const = 0;
+    virtual std::set<Interval> ray_intersect(const Vec3f &orig, const Vec3f &dir) const = 0;
 };
 
 struct Sphere : public Shape {
@@ -19,7 +20,7 @@ struct Sphere : public Shape {
 
     Sphere(const Vec3f &c, const float r, const Material &m) : center(c), radius(r), material(m) {}
 
-    virtual std::vector<Interval> ray_intersect(const Vec3f &orig, const Vec3f &dir) const override {
+    virtual std::set<Interval> ray_intersect(const Vec3f &orig, const Vec3f &dir) const override {
         // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
 
         const Vec3f L = center - orig;
@@ -50,7 +51,7 @@ struct Sphere : public Shape {
 
             // un seul point d'intersection
             const Vec3f hit = orig + dir * t1;
-            return {Interval{hit, hit, normal, material}};
+            return {Interval{hit, hit, normal, material, orig}};
         }
 
         // on veut que le point le plus proche soit `t0`
@@ -59,7 +60,7 @@ struct Sphere : public Shape {
 
         const Vec3f from = orig + dir * t0;
         const Vec3f to = orig + dir * t1;
-        return {Interval{from, to, normal, material}};
+        return {Interval{from, to, normal, material, orig}};
     }
 };
 
@@ -68,7 +69,7 @@ struct Checkerboard : public Shape {
 
     Checkerboard(const float y) : yAxis(y) {}
 
-    virtual std::vector<Interval> ray_intersect(const Vec3f &orig, const Vec3f &dir) const override {
+    virtual std::set<Interval> ray_intersect(const Vec3f &orig, const Vec3f &dir) const override {
         if (fabs(dir.y) > 1e-3) {
             const float d = -(orig.y + yAxis) / dir.y;
             const Vec3f pt = orig + dir * d;
@@ -78,7 +79,7 @@ struct Checkerboard : public Shape {
                 material.diffuse_color =
                     (int(.5 * pt.x + 1000) + int(.5 * pt.z)) & 1 ? Vec3f(.3, .3, .3) : Vec3f(.3, .2, .1);
 
-                return {Interval{pt, pt, [](const Vec3f &) { return Vec3f(0, 1, 0); }, material}};
+                return {Interval{pt, pt, [](const Vec3f &) { return Vec3f(0, 1, 0); }, material, orig}};
             }
         }
 
@@ -95,8 +96,8 @@ struct DuckObject : public Shape {
     DuckObject() : duck("../duck.obj") {}
     DuckObject(const char *path) : duck(path) {}
 
-    virtual std::vector<Interval> ray_intersect(const Vec3f &orig, const Vec3f &dir) const override {
-        std::vector<Interval> inter{};
+    virtual std::set<Interval> ray_intersect(const Vec3f &orig, const Vec3f &dir) const override {
+        std::set<Interval> inter{};
 
         //      _        _        _
         //   __(.)<   __(.)>   __(.)=
@@ -107,58 +108,54 @@ struct DuckObject : public Shape {
         for (int i = 0; i < nfaces; ++i) {
             float dist;
             if (duck.ray_triangle_intersect(i, orig, dir, dist)) {
-                Vec3f hit = orig + dir * dist;
+                const Vec3f hit = orig + dir * dist;
 
-                const Vec3f a = duck.point(duck.vert(i, 0));
-                const Vec3f b = duck.point(duck.vert(i, 1));
-                const Vec3f c = duck.point(duck.vert(i, 2));
+                inter.insert(Interval{hit, hit,
+                                      [i, this](const Vec3f &) {
+                                          const Vec3f &a = duck.point(duck.vert(i, 0));
+                                          const Vec3f &b = duck.point(duck.vert(i, 1));
+                                          const Vec3f &c = duck.point(duck.vert(i, 2));
 
-                // Le vecteur normal à un triangle est un vecteur orthogonal à 2 de ses
-                // côtés
-                //
-                // ```
-                //                                    /
-                //                             (a)   /
-                //                                  /
-                //                          _,.-'"\/
-                //                    _,.-'"      /\
-                //              _,.-'"           /  \
-                //        _,.-'"                /    \
-                // (c)   ('-._                 /      \
-                //            '-._            .        \
-                //                '-._                  \
-                //                    '-._               \
-                //                        '-._            \
-                //                        /   '-._         \
-                //                       /        '-:_      \
-                //                      /             '-._   \
-                //                     /                  '-._)
-                //                    /                          (b)
-                //                   /
-                //
-                //                 (N)
-                //
-                // ```
-                //
-                // Ici,
-                // * `b - a` représente le vecteur `AB`
-                // * `c - a` représente le vecteur `AC`
-                //
-                // Le produit vectoriel des vecteurs `AB` et `AC` correspond au vecteur
-                // normal `N`
+                                          // Le vecteur normal à un triangle est un vecteur orthogonal à 2 de ses
+                                          // côtés
+                                          //
+                                          // ```
+                                          //                                    /
+                                          //                             (a)   /
+                                          //                                  /
+                                          //                          _,.-'"\/
+                                          //                    _,.-'"      /\
+                                          //              _,.-'"           /  \
+                                          //        _,.-'"                /    \
+                                          // (c)   ('-._                 /      \
+                                          //            '-._            .        \
+                                          //                '-._                  \
+                                          //                    '-._               \
+                                          //                        '-._            \
+                                          //                        /   '-._         \
+                                          //                       /        '-:_      \
+                                          //                      /             '-._   \
+                                          //                     /                  '-._)
+                                          //                    /                          (b)
+                                          //                   /
+                                          //
+                                          //                 (N)
+                                          //
+                                          // ```
+                                          //
+                                          // Ici,
+                                          // * `b - a` représente le vecteur `AB`
+                                          // * `c - a` représente le vecteur `AC`
+                                          //
+                                          // Le produit vectoriel des vecteurs `AB` et `AC` correspond au vecteur
+                                          // normal `N`
 
-                inter.push_back(
-                    Interval{hit, hit, [a, b, c](const Vec3f &) { return cross(b - a, c - a).normalize(); }, glass});
+                                          return cross(b - a, c - a).normalize();
+                                      },
+                                      glass, orig});
             }
         }
 
-        // on doit réordonner les intervalles de manière à avoir ceux qui apparaissent devant en premier
-        std::sort(std::begin(inter), std::end(inter), [&orig](const Interval &i1, const Interval &i2) {
-            const float norm_i1_orig = (i1.from - orig).norm();
-            const float norm_i2_orig = (i2.from - orig).norm();
-
-            return norm_i1_orig < norm_i2_orig;
-        });
         return inter;
     }
 };
