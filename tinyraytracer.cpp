@@ -17,7 +17,7 @@
 #include "material.h"
 #include "model.h"
 
-#define WITH_DUCK 0
+#define WITH_DUCK 1
 
 int envmap_width, envmap_height;
 std::vector<Vec3f> envmap;
@@ -52,7 +52,7 @@ bool scene_intersect(const Vec3f &orig, const Vec3f &dir, const std::shared_ptr<
 
     const Interval &i = *std::cbegin(intersections);
 
-    std::clog << i << std::endl;
+    // std::clog << i << std::endl;
 
     hit = i.from;
     N = i.compute_normal(hit);
@@ -87,9 +87,8 @@ Vec3f cast_ray(const Vec3f &orig, const Vec3f &dir, const std::shared_ptr<CSGTre
     float diffuse_light_intensity = 0, specular_light_intensity = 0;
 //#pragma omp parallel for
     for (const Light &light : lights) {
-        Vec3f vec = light.position - point;
-        const Vec3f light_dir = vec.normalize();
-        const float light_distance = vec.norm();
+        const Vec3f light_dir = (light.position - point).normalize();
+        const float light_distance = (light.position - point).norm();
 
         Vec3f shadow_orig = light_dir * N < 0 ? point - N * 1e-3 : point + N * 1e-3; // checking if the point lies in
                                                                                      // the shadow of the light
@@ -383,7 +382,7 @@ int main() {
     std::clog << "Rendering stereoscope image..." << std::endl;
     render_stereoscope(csg_tree, lights, 0);
 #endif
-    render_video_rebond(&render_normal, spheres, csg_tree2, lights);
+    render_video_rebond(&render_normal, spheres, csg_tree, lights);
 
     return 0;
 }

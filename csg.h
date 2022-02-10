@@ -78,6 +78,7 @@ template <class T, typename = std::enable_if_t<std::is_base_of_v<Shape, T>>> str
         //
         // -
 
+#if 0
         std::set<Interval> result{};
         switch (node_type) {
         case CSGTreeNodeType::INTERSECTION: {
@@ -123,6 +124,7 @@ template <class T, typename = std::enable_if_t<std::is_base_of_v<Shape, T>>> str
         case CSGTreeNodeType::UNION: {
             for (const Interval &il : left_intersect) {
                 bool any_overlap = false;
+                
                 for (const Interval &ir : right_intersect) {
                     if (il == ir)
                         break;
@@ -161,9 +163,48 @@ template <class T, typename = std::enable_if_t<std::is_base_of_v<Shape, T>>> str
             return result;
         }
         }
-
-#if 0
+#endif
+#if 1
         if (node_type == CSGTreeNodeType::INTERSECTION) {
+            std::set<Interval> result{};
+            std::set<std::pair<Interval, Interval>> tmp2{};
+
+            for (auto const &i1 : left_intersect) {
+                for (auto const &i2 : right_intersect) {
+                    if (i1.overlaps(i2))
+                        tmp2.insert(std::make_pair(i1, i2));
+                }
+            }
+
+            // pas de chevauchement trouvé : on retire tous les intervalles
+            // -- ne rien faire
+
+            for (const auto &[i2, i] : tmp2) {
+                // - chevauchement total : on choisit `i2`
+                if (i == i2) {
+                    result.insert(i2);
+                    continue;
+                }
+
+                // - inclusion [i2, i, i2] : on garde `i`
+                if (i2.includes(i)) {
+                    result.insert(i);
+                    continue;
+                }
+
+                const float dist_i_orig = (i.from - orig).norm();
+                const float dist_i2_orig = (i2.from - orig).norm();
+
+                if (dist_i2_orig < dist_i_orig) {
+                    // - chevauchement partiel [i2, i] : on garde (i.from, i2.to)
+                    result.insert(Interval{i.from, i2.to, i.compute_normal, i.material, orig});
+                } else {
+                    // - chevauchement partiel [i, i2] : on garde (i2.from, i.to)
+                    result.insert(Interval{i2.from, i.to, i2.compute_normal, i2.material, orig});
+                }
+            }
+
+            return result;
         } else {
             std::set<Interval> result = left_intersect;
 
