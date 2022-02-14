@@ -1,6 +1,12 @@
 # Homework assignment
 
-Final work~:
+Final work:
+
+- Top left: death star
+- Top middle: intersection test (mirror)
+- Bottom right: glass duck
+
+---------------------
 
 - Normal rendering:
 ![](./out_normal.jpg)
