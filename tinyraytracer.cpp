@@ -261,7 +261,7 @@ static inline void render_video_rebond(void (*renderer)(const std::shared_ptr<CS
                                        std::vector<Sphere> &spheres, const std::shared_ptr<CSGTree<Shape>> &csg_tree,
                                        const std::vector<Light> &lights) {
     int first = 0;
-    for (int angle = 1; angle <= NB_IMAGES + 1; ++angle) {
+    for (int angle = 1; angle <= NB_IMAGES; ++angle) {
 
         std::clog << "\033[0G\033[2K[" << angle << "/" << NB_IMAGES << "] Generating video...";
 

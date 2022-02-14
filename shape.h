@@ -109,50 +109,45 @@ struct DuckObject : public Shape {
             float dist;
             if (duck.ray_triangle_intersect(i, orig, dir, dist)) {
                 const Vec3f hit = orig + dir * dist;
+                const Vec3f a = duck.point(duck.vert(i, 0));
+                const Vec3f b = duck.point(duck.vert(i, 1));
+                const Vec3f c = duck.point(duck.vert(i, 2));
+                // Le vecteur normal à un triangle est un vecteur orthogonal à 2 de ses
+                // côtés
+                //
+                // ```
+                //                                    /
+                //                             (a)   /
+                //                                  /
+                //                          _,.-'"\/
+                //                    _,.-'"      /\
+                //              _,.-'"           /  \
+                //        _,.-'"                /    \
+                // (c)   ('-._                 /      \
+                //            '-._            .        \
+                //                '-._                  \
+                //                    '-._               \
+                //                        '-._            \
+                //                        /   '-._         \
+                //                       /        '-:_      \
+                //                      /             '-._   \
+                //                     /                  '-._)
+                //                    /                          (b)
+                //                   /
+                //
+                //                 (N)
+                //
+                // ```
+                //
+                // Ici,
+                // * `b - a` représente le vecteur `AB`
+                // * `c - a` représente le vecteur `AC`
+                //
+                // Le produit vectoriel des vecteurs `AB` et `AC` correspond au vecteur
+                // normal `N`
+                const Vec3f normal = cross(b - a, c - a).normalize();
 
-                inter.insert(Interval{hit, hit + 1e-3f,
-                                      [i, this](const Vec3f &) {
-                                          const Vec3f a = duck.point(duck.vert(i, 0));
-                                          const Vec3f b = duck.point(duck.vert(i, 1));
-                                          const Vec3f c = duck.point(duck.vert(i, 2));
-
-                                          // Le vecteur normal à un triangle est un vecteur orthogonal à 2 de ses
-                                          // côtés
-                                          //
-                                          // ```
-                                          //                                    /
-                                          //                             (a)   /
-                                          //                                  /
-                                          //                          _,.-'"\/
-                                          //                    _,.-'"      /\
-                                          //              _,.-'"           /  \
-                                          //        _,.-'"                /    \
-                                          // (c)   ('-._                 /      \
-                                          //            '-._            .        \
-                                          //                '-._                  \
-                                          //                    '-._               \
-                                          //                        '-._            \
-                                          //                        /   '-._         \
-                                          //                       /        '-:_      \
-                                          //                      /             '-._   \
-                                          //                     /                  '-._)
-                                          //                    /                          (b)
-                                          //                   /
-                                          //
-                                          //                 (N)
-                                          //
-                                          // ```
-                                          //
-                                          // Ici,
-                                          // * `b - a` représente le vecteur `AB`
-                                          // * `c - a` représente le vecteur `AC`
-                                          //
-                                          // Le produit vectoriel des vecteurs `AB` et `AC` correspond au vecteur
-                                          // normal `N`
-
-                                          return cross(b - a, c - a).normalize();
-                                      },
-                                      glass, orig});
+                inter.insert(Interval{hit, hit + 1e-3f, [normal](const Vec3f &) { return normal; }, glass, orig});
             }
         }
 
