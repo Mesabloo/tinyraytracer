@@ -85,7 +85,7 @@ Vec3f cast_ray(const Vec3f &orig, const Vec3f &dir, const std::shared_ptr<CSGTre
     const Vec3f refract_color = cast_ray(refract_orig, refract_dir, csg_tree, lights, depth + 1);
 
     float diffuse_light_intensity = 0, specular_light_intensity = 0;
-//#pragma omp parallel for
+    //#pragma omp parallel for
     for (const Light &light : lights) {
         const Vec3f light_dir = (light.position - point).normalize();
         const float light_distance = (light.position - point).norm();
@@ -254,7 +254,7 @@ static inline void render_stereoscope(const std::shared_ptr<CSGTree<Shape>> &csg
                    100);
 }
 
-#define NB_IMAGES 1
+#define NB_IMAGES 360
 
 static inline void render_video_rebond(void (*renderer)(const std::shared_ptr<CSGTree<Shape>> &,
                                                         const std::vector<Light> &, const Vec3f &, const int),
@@ -332,8 +332,12 @@ int main() {
     spheres.push_back(Sphere(Vec3f(-1.0, -1.5, -12), 2, glass));
     spheres.push_back(Sphere(Vec3f(1.5, -0.5, -18), 3, red_rubber));
     spheres.push_back(Sphere(Vec3f(7, 5, -18), 4, mirror));
-    spheres.push_back(Sphere(Vec3f(-10, 7, -22), 3, ivory));     // premier cercle
-    spheres.push_back(Sphere(Vec3f(-8, 8, -20), 1, red_rubber)); // deuxieme cercle
+    // Death star : premier (metal) - deuxième (no material)
+    spheres.push_back(Sphere(Vec3f(-10, 7, -22), 3, metal));
+    spheres.push_back(Sphere(Vec3f(-8, 8, -20), 1.5, Material()));
+    // tests
+    spheres.push_back(Sphere(Vec3f(-3, 7, -25), 3, mirror));
+    spheres.push_back(Sphere(Vec3f(-1, 6.5, -23.85), 2, red_rubber));
 
     Checkerboard checkerboard(4);
 
@@ -345,23 +349,28 @@ int main() {
 
     const std::shared_ptr<CSGTree<Shape>> csg_tree = std::make_shared<CSGTreeNode<Shape>>(
         std::make_shared<CSGTreeNode<Shape>>(
-            death_star,
-            std::make_shared<CSGTreeNode<Shape>>(std::make_shared<CSGTreeLeaf<Shape>>(spheres[0]),
-                                                 std::make_shared<CSGTreeLeaf<Shape>>(spheres[1]),
-                                                 CSGTreeNodeType::UNION),
-            CSGTreeNodeType::UNION),
-        std::make_shared<CSGTreeNode<Shape>>(
-            std::make_shared<CSGTreeNode<Shape>>(std::make_shared<CSGTreeLeaf<Shape>>(spheres[2]),
-                                                 std::make_shared<CSGTreeLeaf<Shape>>(spheres[3]),
-                                                 CSGTreeNodeType::UNION),
 #if WITH_DUCK
-            std::make_shared<CSGTreeNode<Shape>>(std::make_shared<CSGTreeLeaf<Shape>>(duck),
-                                                 std::make_shared<CSGTreeLeaf<Shape>>(checkerboard),
-                                                 CSGTreeNodeType::UNION),
-#else
-            std::make_shared<CSGTreeLeaf<Shape>>(checkerboard),
+            std::make_shared<CSGTreeNode<Shape>>(
+                std::make_shared<CSGTreeLeaf<Shape>>(duck),
 #endif
+                std::make_shared<CSGTreeNode<Shape>>(
+                    std::make_shared<CSGTreeNode<Shape>>(std::make_shared<CSGTreeLeaf<Shape>>(spheres[3]),
+                                                         std::make_shared<CSGTreeLeaf<Shape>>(spheres[1]),
+                                                         CSGTreeNodeType::UNION),
+                    std::make_shared<CSGTreeNode<Shape>>(std::make_shared<CSGTreeLeaf<Shape>>(spheres[2]),
+                                                         std::make_shared<CSGTreeLeaf<Shape>>(spheres[0]),
+                                                         CSGTreeNodeType::UNION),
+                    CSGTreeNodeType::UNION),
+#if WITH_DUCK
+                CSGTreeNodeType::UNION),
+#endif
+            std::make_shared<CSGTreeNode<Shape>>(std::make_shared<CSGTreeLeaf<Shape>>(spheres[6]),
+                                                 std::make_shared<CSGTreeLeaf<Shape>>(spheres[7]),
+                                                 CSGTreeNodeType::INTERSECTION),
             CSGTreeNodeType::UNION),
+        std::make_shared<CSGTreeNode<Shape>>(std::make_shared<CSGTreeLeaf<Shape>>(checkerboard),
+
+                                             death_star, CSGTreeNodeType::UNION),
 
         CSGTreeNodeType::UNION);
 
@@ -382,7 +391,7 @@ int main() {
     std::clog << "Rendering stereoscope image..." << std::endl;
     render_stereoscope(csg_tree, lights, 0);
 #endif
-    render_video_rebond(&render_parallax, spheres, csg_tree, lights);
+    render_video_rebond(&render_normal, spheres, csg_tree, lights);
 
     return 0;
 }

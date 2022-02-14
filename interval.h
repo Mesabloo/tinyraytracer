@@ -8,17 +8,12 @@
 #include <functional>
 
 //! Vérifie si le point `p3` se situe entre les points `p1` et `p2`.
-static inline constexpr bool is_point_between(const Vec3f &p1, const Vec3f &p2, const Vec3f &p3) {
-    // voir https://math.stackexchange.com/a/3210793
-    //
-    // Soit `t = (x3 - x1)/(x2 - x1)`, on vérifie que `t = (y3 - y1)/(y2 - y1)` et `t = (z3 - z1)/(z2 - z1)`
-    // et que `t ∈ [0, 1]`.
-
-    const float tx = (p3.x - p1.x) / (p2.x - p1.x);
-    const float ty = (p3.y - p1.y) / (p2.y - p1.y);
-    const float tz = (p3.z - p1.z) / (p2.z - p1.z);
-
-    return tx - ty < FLT_EPSILON && tx - tz < FLT_EPSILON && ty - tz < FLT_EPSILON && tx >= 0 && tx <= 1;
+static inline bool is_point_between(const Vec3f &p1, const Vec3f &p2, const Vec3f &p3) {
+    // https://stackoverflow.com/a/33156422/6718698
+    const Vec3f ba = p2 - p3;
+    const Vec3f bc = p2 - p1;
+    const float t = (ba * bc) / (bc * bc);
+    return 0 < t && t < 1;
 }
 
 struct Interval {
@@ -52,10 +47,10 @@ struct Interval {
 inline bool operator==(const Interval &i1, const Interval &i2) { return i1.from == i2.from && i1.to == i2.to; }
 
 inline bool operator<(const Interval &i1, const Interval &i2) {
-  const float dist1 = (i1.orig - i1.from).norm();
-  const float dist2 = (i2.orig - i2.from).norm();
+    const float dist1 = (i1.orig - i1.from).norm();
+    const float dist2 = (i2.orig - i2.from).norm();
 
-  return dist1 < dist2;
+    return dist1 < dist2;
 }
 
 inline std::ostream &operator<<(std::ostream &os, const Interval &i) {

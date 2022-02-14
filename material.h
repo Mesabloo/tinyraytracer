@@ -20,5 +20,6 @@ static inline const Material ivory(1.0, Vec4f(0.6, 0.3, 0.1, 0.0), Vec3f(0.4, 0.
 static inline const Material glass(1.5, Vec4f(0.0, 0.5, 0.1, 0.8), Vec3f(0.6, 0.7, 0.8), 125.);
 static inline const Material red_rubber(1.0, Vec4f(0.9, 0.1, 0.0, 0.0), Vec3f(0.3, 0.1, 0.1), 10.);
 static inline const Material mirror(1.0, Vec4f(0.0, 10.0, 0.8, 0.0), Vec3f(1.0, 1.0, 1.0), 1425.);
+static inline const Material metal(1.0, Vec4f(0.6, 0.3, 0.1, 0.0), Vec3f(0.2, 0.2, 0.2), 15.);
 
 #endif
