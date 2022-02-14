@@ -21,10 +21,8 @@ Final work:
 ```sh
 git clone --recurse-submodules https://github.com/mesabloo/tinyraytracer.git
 cd tinyraytracer
-git checkout homework_assignment
 git submodule update --init
 mkdir build
-cd build
-cmake ..  
-make
+cmake -H. -DCMAKE_BUILD_TYPE=Release -Bbuild
+make -C build
 ```
