@@ -3,13 +3,13 @@
 Final work~:
 
 - Normal rendering:
-![](https://raw.githubusercontent.com/mesabloo/tinyraytracer/main/out_normal.jpg)
+![](./out_normal.jpg)
 
 - Parallax rendering:
-![](https://raw.githubusercontent.com/mesabloo/tinyraytracer/main/out_parallax.jpg)
+![](./out_parallax.jpg)
 
 - Stereoscope rendering:
-![](https://raw.githubusercontent.com/mesabloo/tinyraytracer/main/out_stereo.jpg)
+![](./out_stereo.jpg)
 
 ## compilation
 ```sh
