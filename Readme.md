@@ -26,3 +26,10 @@ mkdir build
 cmake -H. -DCMAKE_BUILD_TYPE=Release -Bbuild
 make -C build
 ```
+
+---------------------
+##Execution
+- Normal rendering
+- Parallax rendering
+- Stereoscope rendering
+- Video of a bouncing ball (40 frames)

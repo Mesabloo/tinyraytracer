@@ -18,6 +18,7 @@
 #include "model.h"
 
 #define WITH_DUCK 1
+#define NB_IMAGES 40 //Nombre d'images pour le rebond de la balle
 
 int envmap_width, envmap_height;
 std::vector<Vec3f> envmap;
@@ -254,7 +255,6 @@ static inline void render_stereoscope(const std::shared_ptr<CSGTree<Shape>> &csg
                    100);
 }
 
-#define NB_IMAGES 360
 
 static inline void render_video_rebond(void (*renderer)(const std::shared_ptr<CSGTree<Shape>> &,
                                                         const std::vector<Light> &, const Vec3f &, const int),
@@ -383,13 +383,13 @@ int main() {
     lights.push_back(Light(Vec3f(30, 50, -25), 1.8));
     lights.push_back(Light(Vec3f(30, 20, 30), 1.7));
 
-#if 0
+#if 1
     std::clog << "Rendering normal image..." << std::endl;
-    render_normal(csg_tree, lights, 0);
+    render_normal(csg_tree, lights,Vec3f{0, 0, 0}, 0);
     std::clog << "Rendering parallax image..." << std::endl;
-    render_parallax(csg_tree, lights, 0);
+    render_parallax(csg_tree, lights, Vec3f{0, 0, 0},  0);
     std::clog << "Rendering stereoscope image..." << std::endl;
-    render_stereoscope(csg_tree, lights, 0);
+    render_stereoscope(csg_tree, lights, Vec3f{0, 0, 0},  0);
 #endif
     render_video_rebond(&render_normal, spheres, csg_tree, lights);
 
